@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 class DioUtil {
-  static Dio _dio;
+  static Dio? _dio;
   static Dio getDio() {
     if (_dio == null) {
       _dio = Dio(
@@ -21,10 +21,10 @@ class DioUtil {
       //   // return HttpClient();
       // };
 
-      _dio.interceptors.addAll([
+      _dio!.interceptors.addAll([
         if (kDebugMode) LogInterceptor(responseBody: true, requestBody: true),
       ]);
     }
-    return _dio;
+    return _dio!;
   }
 }

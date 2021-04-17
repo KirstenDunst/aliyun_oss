@@ -1,31 +1,28 @@
 import 'dart:io';
 
 import 'package:aliyun_oss/src/oss_credential.dart';
-import 'package:flutter/material.dart';
 
-typedef FederationCredentialFetcher = Future<Map<String, dynamic>> Function(
-    String authServerUrl);
+typedef FederationCredentialFetcher = Future<Map<String, dynamic>?> Function(
+    String? authServerUrl);
 
 class OSSAuthCredentialProvider {
   OSSAuthCredentialProvider.init({
-    @required String authServerUrl,
-    @required FederationCredentialFetcher fetcher,
-  })  : assert(authServerUrl?.isNotEmpty ?? false),
-        assert(fetcher != null),
-        _authServerUrl = authServerUrl,
+    required String authServerUrl,
+    required FederationCredentialFetcher fetcher,
+  })   : _authServerUrl = authServerUrl,
         _fetcher = fetcher;
 
   final String _authServerUrl;
   final FederationCredentialFetcher _fetcher;
 
-  OSSCredential _cachedCredential;
+  OSSCredential? _cachedCredential;
 
   Future<OSSCredential> getCredential() async {
-    OSSCredential validCredential;
+    OSSCredential? validCredential;
     if (_cachedCredential == null) {
       _cachedCredential = await _fetchCredential();
     } else {
-      if (_checkExpire(_cachedCredential.expiration)) {
+      if (_checkExpire(_cachedCredential!.expiration)) {
         _cachedCredential = await _fetchCredential();
       }
     }
@@ -37,7 +34,8 @@ class OSSAuthCredentialProvider {
   }
 
   Future<OSSCredential> _fetchCredential() async {
-    final Map<String, dynamic> json = await _fetcher(_authServerUrl);
+    final Map<String, dynamic> json =
+        await (_fetcher(_authServerUrl) as Future<Map<String, dynamic>>);
 
     // FIXME: 测试
     final expiration = json['Expiration'].replaceAll(' UTC', '');
@@ -51,11 +49,11 @@ class OSSAuthCredentialProvider {
   }
 
   // 检查是否过期
-  bool _checkExpire(String expiration) {
+  bool _checkExpire(String? expiration) {
     if (expiration?.isEmpty ?? true) {
       return false;
     }
-    final expirationDate = DateTime.parse(expiration);
+    final expirationDate = DateTime.parse(expiration!);
     final difference = expirationDate.difference(DateTime.now().toUtc());
 
     // 剩余时间小于两分钟，则需要刷新
